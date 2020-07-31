@@ -8,11 +8,10 @@ var collection = ee.ImageCollection('COPERNICUS/S5P/NRTI/L3_NO2')
   .filterBounds(polygon);
 
 // composite each 7 days together and reduce them by median/mean
-var ndviCompList = doyList.map(function(startDoy) {
+var NO2_lists = doyList.map(function(startDoy) {
 
   startDoy = ee.Number(startDoy);
   
-
   return collection
     .filter(ee.Filter.calendarRange(startDoy, startDoy.add(6), 'day_of_year'))
     .reduce(ee.Reducer.median());
@@ -20,10 +19,10 @@ var ndviCompList = doyList.map(function(startDoy) {
 
 // to test if they working
 print(collection)
-print(ndviCompList)
+print(NO2_lists)
 
 // create new collection from the compsites list
-var collection1 = ee.ImageCollection.fromImages(ndviCompList);
+var collection1 = ee.ImageCollection.fromImages(NO2_lists);
 print(collection1 )
 
 
@@ -39,12 +38,12 @@ var band_viz = {
 };
 
 // function convert it to RGB image and apply the mask/clip
-var visFun = function(img) {
+var visRGB = function(img) {
   return img.visualize(band_viz).clip(lisbon);
 };
 
-// abbply the previous function on the latest collection 
-var ndviColVis = collection1.map(visFun);
+// apply the previous function on the latest collection 
+var NO2_Collection = collection1.map(visRGB);
 
 // define the border of animation 
 var border = lisbon.geometry();
@@ -58,7 +57,9 @@ var gifParams = {
 };
 
 // create a link for the animation 
-print(ndviColVis.getVideoThumbURL(gifParams));
+print(NO2_Collection.getVideoThumbURL(gifParams));
+
+
 
 
 
