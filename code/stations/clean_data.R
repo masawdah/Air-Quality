@@ -41,4 +41,4 @@ station_data <- station_data %>%
 write_csv(station_data, "data/stations/clean_stationdata.csv")
 
 # Export station locations
-write_sf(metadata, "station_locations.geojson")
+write_sf(metadata, "data/geo/station_locations.geojson")
