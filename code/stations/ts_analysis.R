@@ -1,5 +1,6 @@
 ############## Time series station analysis ###############
 
+library("lubridate")
 library("tidyverse")
 library("readxl")
 
@@ -44,4 +45,37 @@ ggplot() +
         plot.title = element_text(hjust = 0.5)) +
   guides(fill = guide_legend(nrow = 1))
 
-ggsave("figures/ts_overview.png", width = 11, height = 6, dpi = 500)  
+# ggsave("figures/ts_overview.png", width = 11, height = 6, dpi = 500)  
+
+# Time series change plot
+st2019 <- filter(station_data, year(date)==2019) %>%
+  group_by(AirQualityStation) %>%
+  summarise(no2_2019 = mean(no2)) %>%
+  ungroup()
+st2020 <- filter(station_data, year(date)==2020) %>%
+  left_join(st2019, by = "AirQualityStation") %>%
+  mutate(no2_change = no2/no2_2019 * 100) %>%
+  group_by(Station, date) %>%
+  mutate(no2_mean = mean(no2_change)) %>% 
+  ungroup()
+
+ggplot() +
+  geom_rect(data = calendar, aes(xmin = start, xmax = end, ymin = 0, ymax = 300, fill = name),
+            alpha = 0.2) +
+  geom_hline(data=NULL, yintercept = 100, linetype="dashed") +
+  geom_line(data = st2020, aes(x=date, y=no2_change, group=AirQualityStation),
+            colour = "grey50",  alpha = 0.4) +
+  geom_line(data = st2020, aes(x=date, y=no2_mean),
+            colour = "royalblue",  alpha = 0.8, lwd = 1) +
+  facet_wrap(~Station, ncol = 1, labeller = "label_both") +
+  scale_x_date(date_labels = "%Y-%m-%d", limits = c(as.Date("2020-01-01"), as.Date("2020-07-26")),
+               breaks = xbreaks) +
+  ylim(0, 300) +
+  xlab('') + ylab('%') +
+  ggtitle('NO2 concentrations compared to 2019 by station type and daily mean') +
+  theme_bw() + 
+  theme(legend.position = "bottom", legend.title=element_blank(), 
+        plot.title = element_text(hjust = 0.5)) +
+  guides(fill = guide_legend(nrow = 1))
+
+ggsave("figures/ts_change.png", width = 11, height = 6, dpi = 500)
