@@ -42,8 +42,8 @@ st2020 <- filter(station_data, year(date)==2020) %>%
 # Restate phases
 res_change <- st2020 %>%
   mutate(phase = as.character(phase),
-         phase = ifelse(grepl("Phase", phase), "Phase 1+2+3", phase),
-         phase = ifelse(grepl("Local", phase)|grepl("New", phase), "Post-restrictions", phase),
+         phase = ifelse(grepl("Phase", phase)|grepl("New", phase), "Phase 1+2+3", phase),
+         phase = ifelse(grepl("Local", phase), "Post-restrictions", phase),
          phase = fct_inorder(phase))
 
 # Calculate change by phase and station, join locations
@@ -61,11 +61,10 @@ ggplot() +
   geom_sf(data = formapping, aes(colour = mean_change, shape = Station), size = 2, 
           show.legend = "point") +
   facet_wrap(~phase) +
-  scale_colour_viridis_c(option = "D") +
+  scale_colour_viridis_c(option = "C") +
   theme_map() +
   theme(legend.position = "right", title = element_text(hjust = 0.5)) +
   labs(colour = "NO2 % change") 
 
 # Write to disk
 ggsave("figures/station_map_change.png", width = 11, height = 6, dpi = 500)
-
